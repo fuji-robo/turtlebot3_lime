@@ -17,6 +17,7 @@
 # Authors: Hye-jong KIM
 
 import os
+
 import xacro
 
 from ament_index_python.packages import get_package_share_directory
@@ -29,26 +30,40 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     ld = LaunchDescription()
-    publish_frequency = LaunchConfiguration("publish_frequency")
-    ld.add_action(DeclareLaunchArgument("publish_frequency", default_value="15.0"))
+
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    declare_use_sim_time = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true.',
+    )
+
+    ld.add_action(declare_use_sim_time)
+
+    publish_frequency = LaunchConfiguration('publish_frequency')
+    ld.add_action(DeclareLaunchArgument('publish_frequency', default_value='15.0'))
 
     # Robot description
     robot_description_config = xacro.process_file(
         os.path.join(
-            get_package_share_directory("turtlebot3_lime_description"),
-            "urdf",
-            "turtlebot3_lime.urdf.xacro",
+            get_package_share_directory('turtlebot3_lime_description'),
+            'urdf',
+            'turtlebot3_lime.urdf.xacro',
         )
     )
-    robot_description = {"robot_description": robot_description_config.toxml()}
+    robot_description = {'robot_description': robot_description_config.toxml()}
 
     # Given the published joint states, publish tf for the robot links and the robot description
     rsp_node = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
         respawn=True,
-        output="screen",
-        parameters=[{"publish_frequency": publish_frequency}, robot_description]
+        output='screen',
+        parameters=[
+            {'publish_frequency': publish_frequency},
+            {'use_sim_time': use_sim_time},
+            robot_description,
+        ],
     )
 
     ld.add_action(rsp_node)

@@ -16,34 +16,30 @@
 #
 # Author: Darby Lim
 
-import os
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import ThisLaunchFileDir
 
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    start_rviz = LaunchConfiguration('start_rviz')
+    use_rviz = LaunchConfiguration('use_rviz')
     prefix = LaunchConfiguration('prefix')
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
 
     return LaunchDescription([
         DeclareLaunchArgument(
-            'start_rviz',
+            'use_rviz',
             default_value='false',
             description='Whether execute rviz2'),
 
         DeclareLaunchArgument(
             'prefix',
-            default_value='""',
+            default_value='',
             description='Prefix of the joint and link names'),
 
         DeclareLaunchArgument(
@@ -54,7 +50,7 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([ThisLaunchFileDir(), '/base.launch.py']),
             launch_arguments={
-                'start_rviz': start_rviz,
+                'use_rviz': use_rviz,
                 'prefix': prefix,
                 'use_fake_hardware': use_fake_hardware,
             }.items(),

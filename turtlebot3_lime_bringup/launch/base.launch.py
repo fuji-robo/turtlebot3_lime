@@ -17,6 +17,7 @@
 # Author: Darby Lim, Hye-jong KIM
 
 from launch import LaunchDescription
+from launch.action import Action
 from launch.actions import DeclareLaunchArgument
 from launch.actions import RegisterEventHandler
 from launch.conditions import IfCondition
@@ -26,16 +27,16 @@ from launch.substitutions import Command
 from launch.substitutions import FindExecutable
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
-
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    declared_arguments = []
+    declared_arguments: list[Action] = []
     declared_arguments.append(
         DeclareLaunchArgument(
-            'start_rviz',
+            'use_rviz',
             default_value='false',
             description='Whether execute rviz2'
         )
@@ -44,16 +45,16 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             'prefix',
-            default_value='""',
+            default_value='',
             description='Prefix of the joint and link names'
         )
     )
 
     declared_arguments.append(
         DeclareLaunchArgument(
-            'use_sim',
+            'use_sim_time',
             default_value='false',
-            description='Start robot in Gazebo simulation.'
+            description='Use simulation (Gazebo) clock if true.'
         )
     )
 
@@ -74,41 +75,41 @@ def generate_launch_description():
         )
     )
 
-    start_rviz = LaunchConfiguration('start_rviz')
+    use_rviz = LaunchConfiguration('use_rviz')
     prefix = LaunchConfiguration('prefix')
-    use_sim = LaunchConfiguration('use_sim')
+    use_sim_time = LaunchConfiguration('use_sim_time')
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
     fake_sensor_commands = LaunchConfiguration('fake_sensor_commands')
 
-    urdf_file = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name='xacro')]),
-            ' ',
-            PathJoinSubstitution(
-                [
-                    FindPackageShare('turtlebot3_lime_description'),
-                    'urdf',
-                    'turtlebot3_lime.urdf.xacro'
-                ]
-            ),
-            ' ',
-            'prefix:=',
-            prefix,
-            ' ',
-            'use_sim:=',
-            use_sim,
-            ' ',
-            'use_fake_hardware:=',
-            use_fake_hardware,
-            ' ',
-            'fake_sensor_commands:=',
-            fake_sensor_commands,
-        ]
+    robot_description = ParameterValue(
+        Command(
+            [
+                PathJoinSubstitution([FindExecutable(name='xacro')]),
+                ' ',
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare('turtlebot3_lime_hardware'),
+                        'ros2_control',
+                        'turtlebot3_lime.urdf.xacro',
+                    ]
+                ),
+                ' ',
+                'prefix:=',
+                prefix,
+                ' ',
+                'use_fake_hardware:=',
+                use_fake_hardware,
+                ' ',
+                'fake_sensor_commands:=',
+                fake_sensor_commands,
+            ]
+        ),
+        value_type=str,
     )
 
     controller_manager_config = PathJoinSubstitution(
         [
-            FindPackageShare('turtlebot3_lime_bringup'),
+            FindPackageShare('turtlebot3_lime_hardware'),
             'config',
             'hardware_controller_manager.yaml',
         ]
@@ -118,7 +119,7 @@ def generate_launch_description():
         [
             FindPackageShare('turtlebot3_lime_bringup'),
             'rviz',
-            'turtlebot3_lime.rviz'
+            'turtlebot3_manipulation.rviz',
         ]
     )
 
@@ -126,20 +127,22 @@ def generate_launch_description():
         package='controller_manager',
         executable='ros2_control_node',
         parameters=[
-            {'robot_description': urdf_file},
-            controller_manager_config
+            {'robot_description': robot_description},
+            controller_manager_config,
         ],
-        remappings=[
-            ('~/cmd_vel_unstamped', 'cmd_vel'),
-            ('~/odom', 'odom')
-        ],
-        output="both",
-        condition=UnlessCondition(use_sim))
+        output='both',
+        condition=UnlessCondition(use_sim_time),
+    )
 
     robot_state_pub_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{'robot_description': urdf_file, 'use_sim_time': use_sim}],
+        parameters=[
+            {
+                'robot_description': robot_description,
+                'use_sim_time': use_sim_time,
+            }
+        ],
         output='screen'
     )
 
@@ -147,8 +150,9 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         arguments=['-d', rviz_config_file],
+        parameters=[{'use_sim_time': use_sim_time}],
         output='screen',
-        condition=IfCondition(start_rviz)
+        condition=IfCondition(use_rviz)
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -156,42 +160,39 @@ def generate_launch_description():
         executable='spawner',
         arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
         output='screen',
+        condition=UnlessCondition(use_sim_time),
     )
 
     diff_drive_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['diff_drive_controller', '-c', '/controller_manager'],
+        arguments=['diff_drive_controller', '--controller-manager', '/controller_manager'],
         output='screen',
-        condition=UnlessCondition(use_sim)
+        condition=UnlessCondition(use_sim_time),
     )
 
     imu_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['imu_broadcaster'],
+        arguments=[ 'imu_broadcaster', '--controller-manager', '/controller_manager'],
         output='screen',
+        condition=UnlessCondition(use_sim_time),
     )
 
     arm_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['arm_controller'],
+        arguments=['arm_controller', '--controller-manager', '/controller_manager'],
         output='screen',
+        condition=UnlessCondition(use_sim_time),
     )
 
     gripper_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['gripper_controller'],
+        arguments=['gripper_controller', '--controller-manager', '/controller_manager'],
         output='screen',
-    )
-
-    delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[rviz_node],
-        )
+        condition=UnlessCondition(use_sim_time),
     )
 
     delay_diff_drive_controller_spawner_after_joint_state_broadcaster_spawner = \
@@ -229,8 +230,8 @@ def generate_launch_description():
     nodes = [
         control_node,
         robot_state_pub_node,
+        rviz_node,
         joint_state_broadcaster_spawner,
-        delay_rviz_after_joint_state_broadcaster_spawner,
         delay_diff_drive_controller_spawner_after_joint_state_broadcaster_spawner,
         delay_imu_broadcaster_spawner_after_joint_state_broadcaster_spawner,
         delay_arm_controller_spawner_after_joint_state_broadcaster_spawner,

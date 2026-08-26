@@ -18,28 +18,44 @@
 
 import os
 
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from ament_index_python.packages import get_package_share_directory
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-
     ld = LaunchDescription()
+
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    declare_use_sim_time = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true.',
+    )
+    ld.add_action(declare_use_sim_time)
+
     launch_dir = os.path.join(
-        get_package_share_directory(
-            'turtlebot3_lime_moveit_config'), 'launch')
+        get_package_share_directory('turtlebot3_lime_moveit_config'), 'launch'
+    )
 
     # RViz
     rviz_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([launch_dir, '/moveit_rviz.launch.py'])
+        PythonLaunchDescriptionSource([launch_dir, '/moveit_rviz.launch.py']),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+        }.items(),
     )
     ld.add_action(rviz_launch)
 
     # move_group
     move_group_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([launch_dir, '/move_group.launch.py'])
+        PythonLaunchDescriptionSource([launch_dir, '/move_group.launch.py']),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+        }.items(),
     )
     ld.add_action(move_group_launch)
 

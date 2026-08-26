@@ -13,6 +13,9 @@
   <!-- Include OpenManipulator-X urdf macro -->
   <xacro:include filename="$(find turtlebot3_lime_description)/urdf/open_manipulator_sara.urdf.xacro" />
 
+  <!-- Include ROS 2 Control urdf macro -->
+  <xacro:include filename="$(find turtlebot3_lime_hardware)/ros2_control/turtlebot3_lime_system.ros2_control.xacro" />
+
   <xacro:turtlebot3_bigwheel_orin prefix="$(arg prefix)" />
 
   <!-- Fixed joint between the mobile base and manipulator -->
@@ -23,5 +26,11 @@
   </joint>
 
   <xacro:open_manipulator_sara prefix="$(arg prefix)" />
+
+  <xacro:turtlebot3_lime_system
+    name="TurtleBot3LimeSystem"
+    prefix="$(arg prefix)"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    fake_sensor_commands="$(arg fake_sensor_commands)" />
 
 </robot>

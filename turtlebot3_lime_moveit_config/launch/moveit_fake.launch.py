@@ -18,44 +18,67 @@
 
 import os
 
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from ament_index_python.packages import get_package_share_directory
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
 
     ld = LaunchDescription()
+
+    use_rviz = LaunchConfiguration('use_rviz')
+    use_sim_time = LaunchConfiguration('use_sim_time')
+
+    declare_use_rviz = DeclareLaunchArgument(
+        'use_rviz', default_value='false', description='Whether execute rviz2'
+    )
+
+    declare_use_sim_time = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true.',
+    )
+
+    ld.add_action(declare_use_rviz)
+    ld.add_action(declare_use_sim_time)
+
     launch_dir = os.path.join(
-        get_package_share_directory(
-            'turtlebot3_lime_moveit_config'), 'launch')
+        get_package_share_directory('turtlebot3_lime_moveit_config'), 'launch'
+    )
     bringup_launch_dir = os.path.join(
-        get_package_share_directory(
-            'turtlebot3_lime_bringup'), 'launch')
+        get_package_share_directory('turtlebot3_lime_bringup'), 'launch'
+    )
 
     # RViz
     rviz_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([launch_dir, '/moveit_rviz.launch.py'])
+        PythonLaunchDescriptionSource([launch_dir, '/moveit_rviz.launch.py']),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+        }.items(),
+        condition=IfCondition(use_rviz),
     )
     ld.add_action(rviz_launch)
 
     # move_group
     move_group_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([launch_dir, '/move_group.launch.py'])
+        PythonLaunchDescriptionSource([launch_dir, '/move_group.launch.py']),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+        }.items(),
     )
     ld.add_action(move_group_launch)
 
     # fake controller
-    rviz_arg = DeclareLaunchArgument(
-        'start_rviz',
-        default_value='false',
-        description='Whether execute rviz2')
-    ld.add_action(rviz_arg)
-
     fake_ros2_control_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([bringup_launch_dir, '/fake.launch.py'])
+        PythonLaunchDescriptionSource([bringup_launch_dir, '/fake.launch.py']),
+        launch_arguments={
+            'use_rviz': 'false',
+        }.items(),
     )
     ld.add_action(fake_ros2_control_launch)
 

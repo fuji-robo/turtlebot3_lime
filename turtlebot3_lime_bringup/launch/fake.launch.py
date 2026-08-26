@@ -40,20 +40,20 @@ def generate_launch_description():
         print('Can not launch fake robot in Raspberry Pi')
         return LaunchDescription([])
 
-    start_rviz = LaunchConfiguration('start_rviz')
+    use_rviz = LaunchConfiguration('use_rviz')
     prefix = LaunchConfiguration('prefix')
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
     fake_sensor_commands = LaunchConfiguration('fake_sensor_commands')
 
     return LaunchDescription([
         DeclareLaunchArgument(
-            'start_rviz',
+            'use_rviz',
             default_value='true',
             description='Whether execute rviz2'),
 
         DeclareLaunchArgument(
             'prefix',
-            default_value='""',
+            default_value='',
             description='Prefix of the joint and link names'),
 
         DeclareLaunchArgument(
@@ -70,7 +70,7 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([ThisLaunchFileDir(), '/base.launch.py']),
             launch_arguments={
-                'start_rviz': start_rviz,
+                'use_rviz': use_rviz,
                 'prefix': prefix,
                 'use_fake_hardware': use_fake_hardware,
                 'fake_sensor_commands': fake_sensor_commands,
