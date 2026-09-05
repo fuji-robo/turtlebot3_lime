@@ -18,8 +18,6 @@
 
 import os
 
-from nav2_common.launch import RewrittenYaml
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
@@ -60,13 +58,6 @@ def generate_launch_description():
                 'turtlebot3.yaml',
             ]
         )
-        configured_params = RewrittenYaml(
-            source_file=params_file,
-            param_rewrites={
-                'use_sim_time': use_sim_time,
-            },
-            convert_types=True,
-        )
     else:
         default_params_file = PathJoinSubstitution(
             [
@@ -75,7 +66,6 @@ def generate_launch_description():
                 'turtlebot3.yaml',
             ]
         )
-        configured_params = params_file
 
     default_bt_xml_file = PathJoinSubstitution(
         [
@@ -149,7 +139,7 @@ def generate_launch_description():
                 launch_arguments={
                     'map': map_yaml_file,
                     'use_sim_time': use_sim_time,
-                    'params_file': configured_params,
+                    'params_file': params_file,
                     'default_bt_xml_filename': default_bt_xml_filename,
                     'autostart': autostart,
                     'use_composition': use_composition,
