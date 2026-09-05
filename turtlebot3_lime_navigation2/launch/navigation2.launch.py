@@ -16,6 +16,8 @@
 #
 # Author: Darby Lim
 
+import os
+
 from nav2_common.launch import RewrittenYaml
 
 from launch import LaunchDescription
@@ -27,6 +29,8 @@ from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+
+ROS_DISTRO = os.environ.get('ROS_DISTRO')
 
 
 def generate_launch_description():
@@ -47,13 +51,23 @@ def generate_launch_description():
         ]
     )
 
-    default_params_file = PathJoinSubstitution(
-        [
-            FindPackageShare('turtlebot3_lime_navigation2'),
-            'param',
-            'turtlebot3.yaml',
-        ]
-    )
+    if ROS_DISTRO == 'humble':
+        default_params_file = PathJoinSubstitution(
+            [
+                FindPackageShare('turtlebot3_lime_navigation2'),
+                'param',
+                ROS_DISTRO,
+                'turtlebot3.yaml',
+            ]
+        )
+    else:
+        default_params_file = PathJoinSubstitution(
+            [
+                FindPackageShare('turtlebot3_lime_navigation2'),
+                'param',
+                'turtlebot3.yaml',
+            ]
+        )
 
     default_bt_xml_file = PathJoinSubstitution(
         [
