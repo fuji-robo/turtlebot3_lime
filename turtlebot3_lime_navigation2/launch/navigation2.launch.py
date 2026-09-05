@@ -60,6 +60,13 @@ def generate_launch_description():
                 'turtlebot3.yaml',
             ]
         )
+        configured_params = RewrittenYaml(
+            source_file=params_file,
+            param_rewrites={
+                'use_sim_time': use_sim_time,
+            },
+            convert_types=True,
+        )
     else:
         default_params_file = PathJoinSubstitution(
             [
@@ -68,6 +75,7 @@ def generate_launch_description():
                 'turtlebot3.yaml',
             ]
         )
+        configured_params = params_file
 
     default_bt_xml_file = PathJoinSubstitution(
         [
@@ -91,17 +99,6 @@ def generate_launch_description():
             'navigation2.rviz',
         ]
     )
-
-    if ROS_DISTRO == 'humble':
-        configured_params = RewrittenYaml(
-            source_file=params_file,
-            param_rewrites={
-                'use_sim_time': use_sim_time,
-            },
-            convert_types=True,
-        )
-    else:
-        configured_params = params_file
 
     return LaunchDescription(
         [
