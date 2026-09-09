@@ -16,15 +16,6 @@
 #
 # Authors: Hye-jong KIM
 
-# setup assistant (humble)
-# from moveit_configs_utils import MoveItConfigsBuilder
-# from moveit_configs_utils.launches import generate_move_group_launch
-# def generate_launch_description():
-#     moveit_config = MoveItConfigsBuilder("turtlebot3_lime",
-#                     package_name="turtlebot3_lime_moveit_config").to_moveit_configs()
-#     return generate_move_group_launch(moveit_config)
-
-
 import os
 
 import xacro
@@ -36,9 +27,13 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+ROS_DISTRO = os.environ.get('ROS_DISTRO')
+
 
 def generate_launch_description():
-    # Robot description
+    moveit_config_dir = get_package_share_directory('turtlebot3_lime_moveit_config')
+
+    # Robot Description
     robot_description_config = xacro.process_file(
         os.path.join(
             get_package_share_directory('turtlebot3_lime_description'),
@@ -46,47 +41,97 @@ def generate_launch_description():
             'turtlebot3_lime.urdf.xacro',
         )
     )
-    robot_description = {'robot_description': robot_description_config.toxml()}
+    robot_description = {
+        'robot_description': robot_description_config.toxml(),
+    }
 
-    # Robot description Semantic config
+    # Robot Description Semantic
     robot_description_semantic_path = os.path.join(
-        get_package_share_directory('turtlebot3_lime_moveit_config'),
+        moveit_config_dir,
         'config',
         'turtlebot3_lime.srdf',
     )
+
     with open(robot_description_semantic_path, 'r') as file:
         robot_description_semantic_config = file.read()
 
-    robot_description_semantic = {'robot_description_semantic': robot_description_semantic_config}
+    robot_description_semantic = {
+        'robot_description_semantic': robot_description_semantic_config,
+    }
 
-    # kinematics yaml
+    # Robot Description Kinematics
     kinematics_yaml_path = os.path.join(
-        get_package_share_directory('turtlebot3_lime_moveit_config'),
+        moveit_config_dir,
         'config',
         'kinematics.yaml',
     )
+
     with open(kinematics_yaml_path, 'r') as file:
         kinematics_yaml = yaml.safe_load(file)
 
-    # Planning Functionality
-    ompl_planning_pipeline_config = {
-        'move_group': {
-            'planning_plugin': 'ompl_interface/OMPLPlanner',
-            'request_adapters': """default_planner_request_adapters/AddTimeOptimalParameterization \
-            default_planner_request_adapters/FixWorkspaceBounds \
-            default_planner_request_adapters/FixStartStateBounds \
-            default_planner_request_adapters/FixStartStateCollision \
-            default_planner_request_adapters/FixStartStatePathConstraints""",
-            'start_state_max_bounds_error': 0.1,
-        }
+    robot_description_kinematics = {
+        'robot_description_kinematics': kinematics_yaml,
     }
+
+    # Robot Description Planning
+    joint_limits_yaml_path = os.path.join(
+        moveit_config_dir,
+        'config',
+        'joint_limits.yaml',
+    )
+
+    with open(joint_limits_yaml_path, 'r') as file:
+        joint_limits_yaml = yaml.safe_load(file)
+
+    robot_description_planning = {
+        'robot_description_planning': joint_limits_yaml,
+    }
+
+    # Planning Functionality
+    if ROS_DISTRO == 'humble':
+        ompl_planning_pipeline_config = {
+            'move_group': {
+                'planning_plugin': 'ompl_interface/OMPLPlanner',
+                'request_adapters': (
+                    'default_planner_request_adapters/AddTimeOptimalParameterization '
+                    'default_planner_request_adapters/FixWorkspaceBounds '
+                    'default_planner_request_adapters/FixStartStateBounds '
+                    'default_planner_request_adapters/FixStartStateCollision '
+                    'default_planner_request_adapters/FixStartStatePathConstraints'
+                ),
+                'start_state_max_bounds_error': 0.1,
+            }
+        }
+    else:
+        ompl_planning_pipeline_config = {
+            'move_group': {
+                'planning_plugins': [
+                    'ompl_interface/OMPLPlanner',
+                ],
+                'request_adapters': [
+                    'default_planning_request_adapters/ResolveConstraintFrames',
+                    'default_planning_request_adapters/ValidateWorkspaceBounds',
+                    'default_planning_request_adapters/CheckStartStateBounds',
+                    'default_planning_request_adapters/CheckStartStateCollision',
+                ],
+                'response_adapters': [
+                    'default_planning_response_adapters/AddTimeOptimalParameterization',
+                    'default_planning_response_adapters/ValidateSolution',
+                    'default_planning_response_adapters/DisplayMotionPath',
+                ],
+                'start_state_max_bounds_error': 0.1,
+            }
+        }
+
     ompl_planning_yaml_path = os.path.join(
-        get_package_share_directory('turtlebot3_lime_moveit_config'),
+        moveit_config_dir,
         'config',
         'ompl_planning.yaml',
     )
+
     with open(ompl_planning_yaml_path, 'r') as file:
         ompl_planning_yaml = yaml.safe_load(file)
+
     ompl_planning_pipeline_config['move_group'].update(ompl_planning_yaml)
 
     # Trajectory Execution
@@ -97,18 +142,20 @@ def generate_launch_description():
         'trajectory_execution.allowed_start_tolerance': 0.05,
     }
 
-    # Moveit Controllers
-    moveit_simple_controllers_yaml_path = os.path.join(
-        get_package_share_directory('turtlebot3_lime_moveit_config'),
+    # MoveIt Controllers
+    moveit_controllers_yaml_path = os.path.join(
+        moveit_config_dir,
         'config',
         'moveit_controllers.yaml',
     )
-    with open(moveit_simple_controllers_yaml_path, 'r') as file:
-        moveit_simple_controllers_yaml = yaml.safe_load(file)
+
+    with open(moveit_controllers_yaml_path, 'r') as file:
+        moveit_controllers_yaml = yaml.safe_load(file)
 
     moveit_controllers = {
-        'moveit_simple_controller_manager': moveit_simple_controllers_yaml,
-        'moveit_controller_manager': 'moveit_simple_controller_manager/MoveItSimpleControllerManager',
+        'moveit_simple_controller_manager': moveit_controllers_yaml,
+        'moveit_controller_manager':
+            'moveit_simple_controller_manager/MoveItSimpleControllerManager',
     }
 
     # Planning Scene Monitor Parameters
@@ -121,13 +168,16 @@ def generate_launch_description():
         'publish_robot_description_semantic': True,
     }
 
-    ld = LaunchDescription()
+    # Launch Arguments
     use_sim_time = LaunchConfiguration('use_sim_time')
-    declare_use_sim_time = DeclareLaunchArgument(
-        'use_sim_time', default_value='false', description='Use simulation (Gazebo) clock if true.'
-    )
-    ld.add_action(declare_use_sim_time)
 
+    declare_use_sim_time = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation clock if true.',
+    )
+
+    # Move Group
     move_group_node = Node(
         package='moveit_ros_move_group',
         executable='move_group',
@@ -135,7 +185,8 @@ def generate_launch_description():
         parameters=[
             robot_description,
             robot_description_semantic,
-            kinematics_yaml,
+            robot_description_kinematics,
+            robot_description_planning,
             ompl_planning_pipeline_config,
             trajectory_execution,
             moveit_controllers,
@@ -144,6 +195,9 @@ def generate_launch_description():
         ],
     )
 
+    ld = LaunchDescription()
+
+    ld.add_action(declare_use_sim_time)
     ld.add_action(move_group_node)
 
     return ld

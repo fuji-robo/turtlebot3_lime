@@ -27,6 +27,8 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+ROS_DISTRO = os.environ.get('ROS_DISTRO')
+
 
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -64,17 +66,40 @@ def generate_launch_description():
     robot_description_semantic = {'robot_description_semantic': robot_description_semantic_config}
 
     # Planning Functionality
-    ompl_planning_pipeline_config = {
-        'move_group': {
-            'planning_plugin': 'ompl_interface/OMPLPlanner',
-            'request_adapters': """default_planner_request_adapters/AddTimeOptimalParameterization \
-            default_planner_request_adapters/FixWorkspaceBounds \
-             default_planner_request_adapters/FixStartStateBounds \
-            default_planner_request_adapters/FixStartStateCollision \
-            default_planner_request_adapters/FixStartStatePathConstraints""",
-            'start_state_max_bounds_error': 0.1,
+    if ROS_DISTRO == 'humble':
+        ompl_planning_pipeline_config = {
+            'move_group': {
+                'planning_plugin': 'ompl_interface/OMPLPlanner',
+                'request_adapters': (
+                    'default_planner_request_adapters/AddTimeOptimalParameterization '
+                    'default_planner_request_adapters/FixWorkspaceBounds '
+                    'default_planner_request_adapters/FixStartStateBounds '
+                    'default_planner_request_adapters/FixStartStateCollision '
+                    'default_planner_request_adapters/FixStartStatePathConstraints'
+                ),
+                'start_state_max_bounds_error': 0.1,
+            }
         }
-    }
+    else:
+        ompl_planning_pipeline_config = {
+            'move_group': {
+                'planning_plugins': [
+                    'ompl_interface/OMPLPlanner',
+                ],
+                'request_adapters': [
+                    'default_planning_request_adapters/ResolveConstraintFrames',
+                    'default_planning_request_adapters/ValidateWorkspaceBounds',
+                    'default_planning_request_adapters/CheckStartStateBounds',
+                    'default_planning_request_adapters/CheckStartStateCollision',
+                ],
+                'response_adapters': [
+                    'default_planning_response_adapters/AddTimeOptimalParameterization',
+                    'default_planning_response_adapters/ValidateSolution',
+                    'default_planning_response_adapters/DisplayMotionPath',
+                ],
+                'start_state_max_bounds_error': 0.1,
+            }
+        }
     ompl_planning_yaml_path = os.path.join(
         get_package_share_directory('turtlebot3_lime_moveit_config'),
         'config',
@@ -93,6 +118,23 @@ def generate_launch_description():
     with open(kinematics_yaml_path, 'r') as file:
         kinematics_yaml = yaml.safe_load(file)
 
+    robot_description_kinematics = {
+        'robot_description_kinematics': kinematics_yaml,
+    }
+
+    # Robot description planning
+    joint_limits_yaml_path = os.path.join(
+        get_package_share_directory('turtlebot3_lime_moveit_config'),
+        'config',
+        'joint_limits.yaml',
+    )
+    with open(joint_limits_yaml_path, 'r') as file:
+        joint_limits_yaml = yaml.safe_load(file)
+
+    robot_description_planning = {
+        'robot_description_planning': joint_limits_yaml,
+    }
+
     ld = LaunchDescription()
 
     rviz_node = Node(
@@ -104,8 +146,9 @@ def generate_launch_description():
         parameters=[
             robot_description,
             robot_description_semantic,
+            robot_description_kinematics,
+            robot_description_planning,
             ompl_planning_pipeline_config,
-            kinematics_yaml,
             {'use_sim_time': use_sim_time},
         ],
     )
