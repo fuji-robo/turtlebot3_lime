@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
 # Copyright 2020 ROBOTIS CO., LTD.
+# Copyright 2026 Hibikino-Musashi@Home
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,37 +16,45 @@
 # limitations under the License.
 #
 # Authors: Hye-jong KIM
+# Maintainers: Tomoaki Fujino
 
-import os
 
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import ThisLaunchFileDir
 
 
 def generate_launch_description():
     ld = LaunchDescription()
 
-    use_sim_time = LaunchConfiguration('use_sim_time')
-    declare_use_sim_time = DeclareLaunchArgument(
-        'use_sim_time',
-        default_value='false',
-        description='Use simulation (Gazebo) clock if true.',
+    launch_dir = PathJoinSubstitution(
+        [ThisLaunchFileDir(), 'launch'],
     )
-    ld.add_action(declare_use_sim_time)
 
-    launch_dir = os.path.join(
-        get_package_share_directory('turtlebot3_lime_moveit_config'), 'launch'
+    # Launch Configurations
+    prefix = LaunchConfiguration('prefix')
+
+    # Launch Arguments
+    declare_prefix = DeclareLaunchArgument(
+        'prefix',
+        default_value='',
+        description='Prefix of the joint and link names.',
     )
+    ld.add_action(declare_prefix)
 
     # RViz
     rviz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([launch_dir, '/moveit_rviz.launch.py']),
         launch_arguments={
-            'use_sim_time': use_sim_time,
+            'prefix': prefix,
+            'use_gazebo': 'false',
+            'use_fake_hardware': 'false',
+            'fake_sensor_commands': 'false',
+            'use_sim_time': 'false',
         }.items(),
     )
     ld.add_action(rviz_launch)
@@ -54,7 +63,11 @@ def generate_launch_description():
     move_group_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([launch_dir, '/move_group.launch.py']),
         launch_arguments={
-            'use_sim_time': use_sim_time,
+            'prefix': prefix,
+            'use_gazebo': 'false',
+            'use_fake_hardware': 'false',
+            'fake_sensor_commands': 'false',
+            'use_sim_time': 'false',
         }.items(),
     )
     ld.add_action(move_group_launch)

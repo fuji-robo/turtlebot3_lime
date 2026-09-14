@@ -53,7 +53,7 @@ install(DIRECTORY include/
 )
 
 install(
-  DIRECTORY config ros2_control
+  DIRECTORY config
   DESTINATION share/${PROJECT_NAME}
 )
 
