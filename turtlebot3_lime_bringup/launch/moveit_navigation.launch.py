@@ -68,11 +68,13 @@ def generate_launch_description():
     )
     moveit_rviz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [
-                FindPackageShare('turtlebot3_lime_moveit_config'),
-                'launch',
-                'moveit_rviz.launch.py',
-            ]
+            PathJoinSubstitution(
+                [
+                    FindPackageShare('turtlebot3_lime_moveit_config'),
+                    'launch',
+                    'moveit_rviz.launch.py',
+                ]
+            )
         ),
         condition=IfCondition(use_rviz),
         launch_arguments={
@@ -123,6 +125,7 @@ def generate_launch_description():
         launch_arguments={
             'map_yaml_file': map_yaml_file,
             'use_sim_time': use_sim_time,
+            'use_rviz': 'false',
         }.items(),
     )
 

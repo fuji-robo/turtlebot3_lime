@@ -10,6 +10,7 @@
         <update_rate>100.0</update_rate>
         <visualize>false</visualize>
         <topic>imu</topic>
+        <gz_frame_id>${prefix}imu_link</gz_frame_id>
       </sensor>
     </gazebo>
   </xacro:macro>

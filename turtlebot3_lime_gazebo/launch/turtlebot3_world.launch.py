@@ -26,7 +26,6 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
-from launch.substitutions import ThisLaunchFileDir
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -129,7 +128,8 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    ThisLaunchFileDir(),
+                    FindPackageShare('turtlebot3_lime_gazebo'),
+                    'launch',
                     'robot_state_publisher.launch.py',
                 ]
             )
@@ -144,13 +144,13 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    ThisLaunchFileDir(),
+                    FindPackageShare('turtlebot3_lime_gazebo'),
+                    'launch',
                     'spawn_turtlebot3_lime.launch.py',
                 ]
             )
         ),
         launch_arguments={
-            'prefix': prefix,
             'x_pose': x_pose,
             'y_pose': y_pose,
             'z_pose': z_pose,
@@ -163,9 +163,18 @@ def generate_launch_description():
     # Gazebo Sim resource path
     set_env_vars_resources = AppendEnvironmentVariable(
         'GZ_SIM_RESOURCE_PATH',
-        os.path.join(
-            get_package_share_directory('turtlebot3_lime_gazebo'),
-            'models',
+        os.pathsep.join(
+            [
+                os.path.dirname(
+                    get_package_share_directory('turtlebot3_lime_gazebo')
+                ),
+                os.path.dirname(
+                    get_package_share_directory('turtlebot3_lime_description')
+                ),
+                os.path.dirname(
+                    get_package_share_directory('realsense2_description')
+                ),
+            ]
         ),
     )
 

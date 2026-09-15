@@ -22,17 +22,17 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
+from launch.actions import RegisterEventHandler
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
-from launch.substitutions import ThisLaunchFileDir
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
     # Launch configuration variables specific to simulation
-    prefix = LaunchConfiguration('prefix')
     x_pose = LaunchConfiguration('x_pose')
     y_pose = LaunchConfiguration('y_pose')
     z_pose = LaunchConfiguration('z_pose')
@@ -41,12 +41,6 @@ def generate_launch_description():
     yaw = LaunchConfiguration('yaw')
 
     # Declare the launch arguments
-    declare_prefix_cmd = DeclareLaunchArgument(
-        'prefix',
-        default_value='',
-        description='Prefix for robot links and joints',
-    )
-
     declare_x_position_cmd = DeclareLaunchArgument(
         'x_pose',
         default_value='0.0',
@@ -132,7 +126,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
-                    FindPackageShare('turtlebot3_lime_bringup'),
+                    FindPackageShare('turtlebot3_lime_gazebo'),
                     'launch',
                     'controller_spawner.launch.py',
                 ]
@@ -142,8 +136,16 @@ def generate_launch_description():
 
     ld = LaunchDescription()
 
+    start_controllers = RegisterEventHandler(
+        OnProcessExit(
+            target_action=start_gazebo_ros_spawner_cmd,
+            on_exit=[
+                start_controller_spawner_cmd,
+            ],
+        )
+    )
+
     # Declare the launch options
-    ld.add_action(declare_prefix_cmd)
     ld.add_action(declare_x_position_cmd)
     ld.add_action(declare_y_position_cmd)
     ld.add_action(declare_z_position_cmd)
@@ -154,6 +156,6 @@ def generate_launch_description():
     # Add the actions
     ld.add_action(start_gazebo_ros_spawner_cmd)
     ld.add_action(start_gazebo_ros_bridge_cmd)
-    ld.add_action(start_controller_spawner_cmd)
+    ld.add_action(start_controllers)
 
     return ld
