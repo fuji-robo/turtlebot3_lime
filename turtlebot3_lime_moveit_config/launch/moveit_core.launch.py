@@ -24,16 +24,13 @@ from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch.substitutions import PathJoinSubstitution
 from launch.substitutions import ThisLaunchFileDir
 
 
 def generate_launch_description():
     ld = LaunchDescription()
 
-    launch_dir = PathJoinSubstitution(
-        [ThisLaunchFileDir(), 'launch'],
-    )
+    launch_dir = ThisLaunchFileDir()
 
     # Launch Configurations
     prefix = LaunchConfiguration('prefix')

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 #
-# Copyright 2020 ROBOTIS CO., LTD.
 # Copyright 2026 Hibikino-Musashi@Home
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Authors: Hye-jong KIM
-# Maintainers: Tomoaki Fujino
+# Author: Tomoaki Fujino
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -37,6 +35,7 @@ def generate_launch_description():
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
     fake_sensor_commands = LaunchConfiguration('fake_sensor_commands')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    publish_frequency = LaunchConfiguration('publish_frequency')
 
     # Launch Arguments
     declare_prefix = DeclareLaunchArgument(
@@ -69,14 +68,18 @@ def generate_launch_description():
         description='Use simulation (Gazebo) clock if true.',
     )
 
+    declare_publish_frequency = DeclareLaunchArgument(
+        'publish_frequency',
+        default_value='15.0',
+        description='Frequency at which joint states are published to TF.',
+    )
+
     ld.add_action(declare_prefix)
     ld.add_action(declare_use_gazebo)
     ld.add_action(declare_use_fake_hardware)
     ld.add_action(declare_fake_sensor_commands)
     ld.add_action(declare_use_sim_time)
-
-    publish_frequency = LaunchConfiguration('publish_frequency')
-    ld.add_action(DeclareLaunchArgument('publish_frequency', default_value='15.0'))
+    ld.add_action(declare_publish_frequency)
 
     # Robot description
     robot_description_content = Command(
@@ -106,19 +109,18 @@ def generate_launch_description():
     )
     robot_description = {'robot_description': robot_description_content}
 
-    # Given the published joint states, publish tf for the robot links and the robot description
+    # Robot state publisher
     rsp_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         respawn=True,
         output='screen',
         parameters=[
+            robot_description,
             {'publish_frequency': publish_frequency},
             {'use_sim_time': use_sim_time},
-            robot_description,
         ],
     )
-
     ld.add_action(rsp_node)
 
     return ld

@@ -44,6 +44,7 @@ def generate_launch_description():
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
     fake_sensor_commands = LaunchConfiguration('fake_sensor_commands')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    rviz_config = LaunchConfiguration('rviz_config')
 
     # Launch Arguments
     declare_prefix = DeclareLaunchArgument(
@@ -76,18 +77,24 @@ def generate_launch_description():
         description='Use simulation clock if true.',
     )
 
+    declare_rviz_config = DeclareLaunchArgument(
+        'rviz_config',
+        default_value=PathJoinSubstitution(
+            [
+                FindPackageShare('turtlebot3_lime_moveit_config'),
+                'config',
+                'moveit.rviz',
+            ]
+        ),
+        description='Path to the RViz configuration file.',
+    )
+
     ld.add_action(declare_prefix)
     ld.add_action(declare_use_gazebo)
     ld.add_action(declare_use_fake_hardware)
     ld.add_action(declare_fake_sensor_commands)
     ld.add_action(declare_use_sim_time)
-
-    # RViz Config
-    rviz_config = os.path.join(
-        get_package_share_directory('turtlebot3_lime_moveit_config'),
-        'config',
-        'moveit.rviz',
-    )
+    ld.add_action(declare_rviz_config)
 
     # Robot description
     robot_description_content = Command(

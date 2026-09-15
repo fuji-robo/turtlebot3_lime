@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
 # Copyright 2022 ROBOTIS CO., LTD.
+# Copyright 2026 Hibikino-Musashi@Home
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +16,7 @@
 # limitations under the License.
 #
 # Author: Darby Lim
+# Maintainers: Tomoaki Fujino
 
 import os
 

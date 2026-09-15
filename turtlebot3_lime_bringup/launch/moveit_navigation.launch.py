@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
 # Copyright 2024 ROBOTIS JAPAN CO., LTD.
+# Copyright 2026 Hibikino-Musashi@Home
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +16,13 @@
 # limitations under the License.
 #
 # Authors: Keisuke Nagashima
+# Maintainers: Tomoaki Fujino
 
-import os
 
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
@@ -29,31 +30,85 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    ld = LaunchDescription()
+
+    use_rviz = LaunchConfiguration('use_rviz')
+    use_gazebo = LaunchConfiguration('use_gazebo')
     use_sim_time = LaunchConfiguration('use_sim_time')
 
-    # Moveit 2
-    moveit_launch_dir = os.path.join(
-        get_package_share_directory('turtlebot3_lime_moveit_config'), 'launch'
+    declare_use_rviz = DeclareLaunchArgument(
+        'use_rviz',
+        default_value='true',
+        description='Launch RViz2 if true.',
     )
 
+    declare_use_gazebo = DeclareLaunchArgument(
+        'use_gazebo',
+        default_value='false',
+        description='Use Gazebo simulation if true.',
+    )
+
+    declare_use_sim_time = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true.',
+    )
+
+    ld.add_action(declare_use_rviz)
+    ld.add_action(declare_use_gazebo)
+    ld.add_action(declare_use_sim_time)
+
+    # Moveit 2 RViz
+    rviz_config = PathJoinSubstitution(
+        [
+            FindPackageShare('turtlebot3_lime_bringup'),
+            'rviz',
+            'moveit_navigation.rviz',
+        ]
+    )
     moveit_rviz_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([moveit_launch_dir, '/moveit_rviz.launch.py']),
+        PythonLaunchDescriptionSource(
+            [
+                FindPackageShare('turtlebot3_lime_moveit_config'),
+                'launch',
+                'moveit_rviz.launch.py',
+            ]
+        ),
+        condition=IfCondition(use_rviz),
         launch_arguments={
+            'rviz_config': rviz_config,
+            'use_gazebo': use_gazebo,
+            'use_fake_hardware': 'false',
+            'fake_sensor_commands': 'false',
             'use_sim_time': use_sim_time,
         }.items(),
     )
+    ld.add_action(moveit_rviz_launch)
 
+    # Moveit 2
+    moveit_launch_dir = PathJoinSubstitution(
+        [FindPackageShare('turtlebot3_lime_moveit_config'), 'launch'],
+    )
     move_group_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([moveit_launch_dir, '/move_group.launch.py']),
         launch_arguments={
+            'use_gazebo': use_gazebo,
+            'use_fake_hardware': 'false',
+            'fake_sensor_commands': 'false',
             'use_sim_time': use_sim_time,
         }.items(),
     )
+    ld.add_action(move_group_launch)
 
     # Navigation 2
-    map_yaml_file = LaunchConfiguration(
+    nav2_launch_dir = PathJoinSubstitution(
+        [FindPackageShare('turtlebot3_lime_navigation2'), 'launch'],
+    )
+    map_yaml_file = LaunchConfiguration('map_yaml_file')
+
+    nav2_map_file_arg = DeclareLaunchArgument(
         'map_yaml_file',
-        default=PathJoinSubstitution(
+        default_value=PathJoinSubstitution(
             [
                 FindPackageShare('turtlebot3_lime_navigation2'),
                 'map',
@@ -61,32 +116,16 @@ def generate_launch_description():
             ]
         ),
     )
-
-    nav2_map_file_arg = DeclareLaunchArgument('map_yaml_file', default_value=map_yaml_file)
-
-    nav2_launch_dir = os.path.join(
-        get_package_share_directory('turtlebot3_lime_navigation2'),
-        'launch',
-    )
+    ld.add_action(nav2_map_file_arg)
 
     nav2_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [nav2_launch_dir, '/navigation2.launch.py'],
-        ),
+        PythonLaunchDescriptionSource([nav2_launch_dir, '/navigation2.launch.py']),
         launch_arguments={
             'map_yaml_file': map_yaml_file,
             'use_sim_time': use_sim_time,
         }.items(),
     )
 
-    return LaunchDescription([
-        DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='false',
-            description='Use simulation clock if true.',
-        ),
-        moveit_rviz_launch,
-        move_group_launch,
-        nav2_map_file_arg,
-        nav2_launch,
-    ])
+    ld.add_action(nav2_launch)
+
+    return ld

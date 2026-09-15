@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro name="load_gazebo_sim_ros2_control_plugin" params="use_gazebo:=^|false">
+    <xacro:if value="${use_gazebo}">
+      <gazebo>
+        <plugin
+          filename="gz_ros2_control-system"
+          name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+          <robot_param>robot_description</robot_param>
+          <robot_param_node>robot_state_publisher</robot_param_node>
+          <parameters>
+            $(find turtlebot3_lime_moveit_config)/config/ros2_controllers.yaml
+          </parameters>
+        </plugin>
+      </gazebo>
+    </xacro:if>
+  </xacro:macro>
+</robot>
