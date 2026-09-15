@@ -42,7 +42,7 @@ def generate_launch_description():
 
     declare_publish_frequency = DeclareLaunchArgument(
         'publish_frequency',
-        default_value='15.0',
+        default_value='30.0',
         description='Frequency at which joint states are published to TF.',
     )
 

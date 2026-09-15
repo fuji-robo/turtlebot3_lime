@@ -190,6 +190,22 @@ def generate_launch_description():
         'moveit_controller_manager': 'moveit_simple_controller_manager/MoveItSimpleControllerManager',
     }
 
+    # 3D Sensors
+    sensors_3d_yaml_path = os.path.join(
+        moveit_config_dir,
+        'config',
+        'sensors_3d.yaml',
+    )
+
+    with open(sensors_3d_yaml_path, 'r') as file:
+        sensors_3d_yaml = yaml.safe_load(file)
+
+    occupancy_map_monitor_parameters = {
+        **sensors_3d_yaml,
+        'octomap_frame': 'odom',
+        'octomap_resolution': 0.05,
+    }
+
     # Planning Scene Monitor Parameters
     planning_scene_monitor_parameters = {
         'publish_planning_scene': True,
@@ -251,6 +267,7 @@ def generate_launch_description():
             trajectory_execution,
             moveit_controllers,
             planning_scene_monitor_parameters,
+            occupancy_map_monitor_parameters,
             {'use_sim_time': use_sim_time},
         ],
     )
