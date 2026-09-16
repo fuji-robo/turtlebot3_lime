@@ -22,6 +22,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import ThisLaunchFileDir
@@ -34,6 +35,7 @@ def generate_launch_description():
 
     # Launch Configurations
     prefix = LaunchConfiguration('prefix')
+    use_rviz = LaunchConfiguration('use_rviz')
 
     # Launch Arguments
     declare_prefix = DeclareLaunchArgument(
@@ -41,7 +43,15 @@ def generate_launch_description():
         default_value='',
         description='Prefix of the joint and link names.',
     )
+
+    declare_use_rviz = DeclareLaunchArgument(
+        'use_rviz',
+        default_value='true',
+        description='Whether to execute RViz2.',
+    )
+
     ld.add_action(declare_prefix)
+    ld.add_action(declare_use_rviz)
 
     # RViz
     rviz_launch = IncludeLaunchDescription(
@@ -53,6 +63,7 @@ def generate_launch_description():
             'fake_sensor_commands': 'false',
             'use_sim_time': 'false',
         }.items(),
+        condition=IfCondition(use_rviz),
     )
     ld.add_action(rviz_launch)
 

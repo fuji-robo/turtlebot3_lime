@@ -1,4 +1,5 @@
 # TurtleBot3 Friends: Lime
+
 ![TB3 Lime](./img/bg.png)
 
 ## Gazebo環境での動作検証
@@ -81,7 +82,7 @@ cmake .. -DBUILD_EXAMPLES=true -DCMAKE_BUILD_TYPE=release -DFORCE_RSUSB_BACKEND=
 Realsense D435i 内部のファームウェアのバージョンを Intel RealSense SDK 2.0 のバージョンと合わせる必要があります．
 
 [Realsense 公式サイト](https://dev.realsenseai.com/docs/firmware-releases-d400/)から，
-Version-5.16.0.1 を``Downloads``フォルダにダウンロードしてください．
+Version-5.16.0.1 を`Downloads`フォルダにダウンロードしてください．
 
 Realsense D435i内臓ファームウェアを Jetson Orin Nano から書き込みます
 
@@ -162,20 +163,20 @@ cd ./opencr_update
 
 - ROS 2 がインストールされている場合
 
-    ワークスペースを作成します．
+  ワークスペースを作成します．
 
-    ```bash
-    mkdir -p ~/turtlebot3_ws/src
-    cd ~/turtlebot3_ws && colcon build --symlink-install && . install/setup.bash
-    ```
+  ```bash
+  mkdir -p ~/turtlebot3_ws/src
+  cd ~/turtlebot3_ws && colcon build --symlink-install && . install/setup.bash
+  ```
 
-    ワークスペースやROS_DOMAINを設定します．
+  ワークスペースやROS_DOMAINを設定します．
 
-    ```bash
-    echo '. ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
-    echo 'export ROS_DOMAIN_ID=30 #TURTLEBOT3' >> ~/.bashrc
-    source ~/.bashrc
-    ```
+  ```bash
+  echo '. ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
+  echo 'export ROS_DOMAIN_ID=30 #TURTLEBOT3' >> ~/.bashrc
+  source ~/.bashrc
+  ```
 
 - ROS 2 がインストールされていない場合
     <details>
@@ -184,38 +185,39 @@ cd ./opencr_update
     <a href="[#12-ros-2-humble-のインストール](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html))">ROS 公式のインストールガイド</a>に従って，ROS 2 Humbleをインストールします．
     まず，Ubuntu Universe リポジトリが有効になっていることを確認します．
 
-    ```bash
-    sudo apt install -y software-properties-common
-    sudo add-apt-repository universe
-    ```
+  ```bash
+  sudo apt install -y software-properties-common
+  sudo add-apt-repository universe
+  ```
 
-    ROS 2 Humbleをインストールします．
+  ROS 2 Humbleをインストールします．
 
-    ```bash
-    sudo apt update && sudo apt -y install curl gnupg lsb-release
-    sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-    sudo apt update
-    sudo apt install -y ros-humble-desktop
-    echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
-    source ~/.bashrc
-    sudo apt install -y python3-colcon-common-extensions python3-pip
-    ```
+  ```bash
+  sudo apt update && sudo apt -y install curl gnupg lsb-release
+  sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+  sudo apt update
+  sudo apt install -y ros-humble-desktop
+  echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+  source ~/.bashrc
+  sudo apt install -y python3-colcon-common-extensions python3-pip
+  ```
 
-    ワークスペースを作成します．
+  ワークスペースを作成します．
 
-    ```bash
-    mkdir -p ~/turtlebot3_ws/src
-    cd ~/turtlebot3_ws && colcon build --symlink-install && . install/setup.bash
-    ```
+  ```bash
+  mkdir -p ~/turtlebot3_ws/src
+  cd ~/turtlebot3_ws && colcon build --symlink-install && . install/setup.bash
+  ```
 
-    ワークスペースやROS_DOMAINを設定します．
+  ワークスペースやROS_DOMAINを設定します．
 
-    ```bash
-    echo '. ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
-    echo 'export ROS_DOMAIN_ID=30 #TURTLEBOT3' >> ~/.bashrc
-    source ~/.bashrc
-    ```
+  ```bash
+  echo '. ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
+  echo 'export ROS_DOMAIN_ID=30 #TURTLEBOT3' >> ~/.bashrc
+  source ~/.bashrc
+  ```
+
     </details>
 
 #### 2.3. その他の必要なROS2パッケージのインストール
@@ -250,19 +252,45 @@ Jetson Orin Nano に ssh 接続して，ドライバを立ち上げます．
 ros2 launch turtlebot3_lime_bringup hardware.launch.py
 ```
 
+**MoveIt 2 実行中に bringup を終了しないでください．中断する場合は先に moveit を終了してください．**
+
+MoveIt Servo を起動します．
+
+```bash
+ros2 launch turtlebot3_lime_moveit_config servo.launch.py
+```
+
 #### 3.2. 地図を作る (SLAM)
 
-リモートPC側でSLAMを立ち上げます．
+リモート PC 側でSLAMを立ち上げます．
 
 ```bash
 ros2 launch turtlebot3_lime_cartographer cartographer.launch.py
 ```
 
-リモートPC側でテレオペを実行します．ただし，テレオペでのアーム操作は，実機では未対応です．
+リモート PC 側でテレオペを実行します．
 
 ```bash
 ros2 run turtlebot3_lime_teleop turtlebot3_lime_teleop
 ```
+
+キーボードから以下の操作ができます．
+
+| Key       | Operation                      |
+| --------- | ------------------------------ |
+| `1` / `q` | Joint1 を正方向 / 負方向に回転 |
+| `2` / `w` | Joint2 を正方向 / 負方向に回転 |
+| `3` / `e` | Joint3 を正方向 / 負方向に回転 |
+| `4` / `r` | Joint4 を正方向 / 負方向に回転 |
+| `5` / `t` | Joint5 を正方向 / 負方向に回転 |
+| `6` / `y` | Joint6 を正方向 / 負方向に回転 |
+| `o` / `p` | グリッパーを開く / 閉じる      |
+| `i`       | TurtleBot3 を前進              |
+| `k`       | TurtleBot3 を後退              |
+| `j`       | TurtleBot3 を左旋回            |
+| `l`       | TurtleBot3 を右旋回            |
+| `Space`   | TurtleBot3 を停止              |
+| `Esc`     | テレオペを終了                 |
 
 リモート PC 側でマップを保存します．
 
@@ -288,12 +316,6 @@ ros2 launch turtlebot3_lime_navigation2 navigation2.launch.py map_yaml_file:=$HO
 ros2 launch turtlebot3_lime_moveit_config moveit_core.launch.py
 ```
 
-MoveIt Servo を使用する場合は，必要に応じて起動します．
-
-```bash
-ros2 launch turtlebot3_lime_moveit_config servo.launch.py
-```
-
 #### 3.5. Navigation 2 と MoveIt 2 を同時に実行する
 
 リモートPCで以下のコマンドを実行します．
@@ -310,85 +332,9 @@ Jetson Orin Nanoに ssh 接続して，ドライバを立ち上げます．
 ros2 launch realsense2_camera rs_launch.py
 ```
 
-### 4. シミュレーションの動かし方
+### 4. Fake Hardware での動かし方
 
 #### 4.1. セットアップ
-
-この操作は，動かす際に全てリモートPCで行ってください．
-
-Gazebo を起動します．
-
-```bash
-ros2 launch turtlebot3_lime_gazebo turtlebot3_world.launch.py
-```
-
-#### 4.2. 地図を作る (SLAM)
-
-![cartographer](./img/cartographer.gif?raw=true)
-
-SLAMを立ち上げます．
-
-```bash
-ros2 launch turtlebot3_lime_cartographer cartographer.launch.py use_sim_time:=true
-```
-
-テレオペを実行します．
-
-```bash
-ros2 run turtlebot3_lime_teleop turtlebot3_lime_teleop
-```
-
-マップを保存します．
-
-```bash
-ros2 run nav2_map_server map_saver_cli -f ~/map
-```
-
-#### 4.3. Navigation 2
-
-![navigation](./img/navigation.gif?raw=true)
-
-Navigation 2 を起動します．
-
-```bash
-ros2 launch turtlebot3_lime_navigation2 navigation2.launch.py use_sim_time:=true map_yaml_file:=$HOME/map.yaml
-```
-
-#### 4.4. MoveIt 2
-
-![moveit](./img/moveit.gif?raw=true)
-
-Gazebo 用 Move Group と RViz2 を起動します．
-
-```bash
-ros2 launch turtlebot3_lime_moveit_config moveit_gazebo.launch.py
-```
-
-MoveIt Servo を使用する場合は，必要に応じて起動します．
-
-```bash
-ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_sim_time:=true use_gazebo:=true
-```
-
-#### 4.5. Navigation 2 と MoveIt 2 を同時に実行する
-
-![moveit\_navigation](./img/moveit_navigation.gif?raw=true)
-
-以下のコマンドを実行します．
-
-```bash
-ros2 launch turtlebot3_lime_bringup moveit_navigation.launch.py use_sim_time:=true use_gazebo:=true map_yaml_file:=$HOME/map.yaml
-```
-
-MoveIt Servo を使用する場合は，必要に応じて別のターミナルで以下のコマンドを実行します．
-
-```bash
-ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_sim_time:=true use_gazebo:=true
-```
-
-### 5. Fake Hardware での動かし方
-
-#### 5.1. セットアップ
 
 この操作は，動かす際に全てリモートPCで行ってください．
 
@@ -398,24 +344,140 @@ Fake Hardware を起動します．
 ros2 launch turtlebot3_lime_bringup fake.launch.py
 ```
 
-#### 5.2. MoveIt 2
-
-Fake Hardware 用  Move Group と RViz2 を起動します．
-
-```bash
-ros2 launch turtlebot3_lime_moveit_config moveit_fake.launch.py
-```
-
-MoveIt Servo を使用する場合は，必要に応じて起動します．
+MoveIt Servo を起動します．
 
 ```bash
 ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_fake_hardware:=true
 ```
 
+#### 4.2. MoveIt 2
+
+Fake Hardware 用 Move Group と RViz2 を起動します．
+
+```bash
+ros2 launch turtlebot3_lime_moveit_config moveit_fake.launch.py
+```
+
+#### 4.3. テレオペ
+
+テレオペを実行します．
+
+```bash
+ros2 run turtlebot3_lime_teleop turtlebot3_lime_teleop
+```
+
+キーボードから以下の操作ができます．
+
+| Key       | Operation                      |
+| --------- | ------------------------------ |
+| `1` / `q` | Joint1 を正方向 / 負方向に回転 |
+| `2` / `w` | Joint2 を正方向 / 負方向に回転 |
+| `3` / `e` | Joint3 を正方向 / 負方向に回転 |
+| `4` / `r` | Joint4 を正方向 / 負方向に回転 |
+| `5` / `t` | Joint5 を正方向 / 負方向に回転 |
+| `6` / `y` | Joint6 を正方向 / 負方向に回転 |
+| `o` / `p` | グリッパーを開く / 閉じる      |
+| `i`       | TurtleBot3 を前進              |
+| `k`       | TurtleBot3 を後退              |
+| `j`       | TurtleBot3 を左旋回            |
+| `l`       | TurtleBot3 を右旋回            |
+| `Space`   | TurtleBot3 を停止              |
+| `Esc`     | テレオペを終了                 |
+
+### 5. シミュレーションの動かし方
+
+#### 5.1. セットアップ
+
+この操作は，動かす際に全てリモートPCで行ってください．
+
+Gazebo を起動します．
+
+```bash
+ros2 launch turtlebot3_lime_gazebo turtlebot3_world.launch.py
+```
+
+MoveIt Servo を起動します．
+
+```bash
+ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_sim_time:=true use_gazebo:=true
+```
+
+#### 5.2. 地図を作る (SLAM)
+
+![cartographer](./img/cartographer.gif?raw=true)
+
+SLAMを立ち上げます．
+
+```bash
+ros2 launch turtlebot3_lime_cartographer cartographer.launch.py use_sim_time:=true
+```
+
+テレオペを実行します．Gazebo では Servo と同じシミュレーション時刻を使うため，`use_sim_time:=true` を指定します．時刻が一致しないと，アーム指令のタイムアウトが正常に判定されません．
+
+```bash
+ros2 run turtlebot3_lime_teleop turtlebot3_lime_teleop --ros-args -p use_sim_time:=true
+```
+
+キーボードから以下の操作ができます．
+
+| Key       | Operation                      |
+| --------- | ------------------------------ |
+| `1` / `q` | Joint1 を正方向 / 負方向に回転 |
+| `2` / `w` | Joint2 を正方向 / 負方向に回転 |
+| `3` / `e` | Joint3 を正方向 / 負方向に回転 |
+| `4` / `r` | Joint4 を正方向 / 負方向に回転 |
+| `5` / `t` | Joint5 を正方向 / 負方向に回転 |
+| `6` / `y` | Joint6 を正方向 / 負方向に回転 |
+| `o` / `p` | グリッパーを開く / 閉じる      |
+| `i`       | TurtleBot3 を前進              |
+| `k`       | TurtleBot3 を後退              |
+| `j`       | TurtleBot3 を左旋回            |
+| `l`       | TurtleBot3 を右旋回            |
+| `Space`   | TurtleBot3 を停止              |
+| `Esc`     | テレオペを終了                 |
+
+マップを保存します．
+
+```bash
+ros2 run nav2_map_server map_saver_cli -f ~/map
+```
+
+#### 5.3. Navigation 2
+
+![navigation](./img/navigation.gif?raw=true)
+
+Navigation 2 を起動します．
+
+```bash
+ros2 launch turtlebot3_lime_navigation2 navigation2.launch.py use_sim_time:=true map_yaml_file:=$HOME/map.yaml
+```
+
+#### 5.4. MoveIt 2
+
+![moveit](./img/moveit.gif?raw=true)
+
+Gazebo 用 Move Group と RViz2 を起動します．
+
+```bash
+ros2 launch turtlebot3_lime_moveit_config moveit_gazebo.launch.py
+```
+
+#### 5.5. Navigation 2 と MoveIt 2 を同時に実行する
+
+![moveit_navigation](./img/moveit_navigation.gif?raw=true)
+
+以下のコマンドを実行します．
+
+```bash
+ros2 launch turtlebot3_lime_bringup moveit_navigation.launch.py use_sim_time:=true use_gazebo:=true map_yaml_file:=$HOME/map.yaml
+```
+
 ## TurtleBot3 with OpenMANIPULATORのROBOTIS e-Manual
+
 - [TurtleBot3 with OpenMANIPULATOR](https://emanual.robotis.com/docs/en/platform/turtlebot3/manipulation/)
 
 ## TurtleBot3に関するオープンソース関連
+
 - [turtlebot3_manipulation](https://github.com/ROBOTIS-GIT/turtlebot3_manipulation/tree/humble-devel)
 - [turtlebot3](https://github.com/ROBOTIS-GIT/turtlebot3)
 - [turtlebot3_jp_custom](https://github.com/ROBOTIS-JAPAN-GIT/turtlebot3_jp_custom)
@@ -427,6 +489,7 @@ ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_fake_hardware:=tru
 - [OpenCR](https://github.com/ROBOTIS-GIT/OpenCR)
 
 ## TurtleBot3に関するドキュメントと動画
+
 - [ROBOTIS e-Manual for TurtleBot3 with OpenMANIPULATOR](https://emanual.robotis.com/docs/en/platform/turtlebot3/manipulation/)
 - [ROBOTIS e-Manual for TurtleBot3](http://turtlebot3.robotis.com/)
 - [ROBOTIS e-Manual for Dynamixel SDK](http://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_sdk/overview/)
