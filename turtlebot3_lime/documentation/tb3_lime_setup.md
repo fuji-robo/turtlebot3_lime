@@ -358,32 +358,6 @@ Fake Hardware 用 Move Group と RViz2 を起動します．
 ros2 launch turtlebot3_lime_moveit_config moveit_fake.launch.py
 ```
 
-#### 4.3. テレオペ
-
-テレオペを実行します．
-
-```bash
-ros2 run turtlebot3_lime_teleop turtlebot3_lime_teleop
-```
-
-キーボードから以下の操作ができます．
-
-| Key       | Operation                      |
-| --------- | ------------------------------ |
-| `1` / `q` | Joint1 を正方向 / 負方向に回転 |
-| `2` / `w` | Joint2 を正方向 / 負方向に回転 |
-| `3` / `e` | Joint3 を正方向 / 負方向に回転 |
-| `4` / `r` | Joint4 を正方向 / 負方向に回転 |
-| `5` / `t` | Joint5 を正方向 / 負方向に回転 |
-| `6` / `y` | Joint6 を正方向 / 負方向に回転 |
-| `o` / `p` | グリッパーを開く / 閉じる      |
-| `i`       | TurtleBot3 を前進              |
-| `k`       | TurtleBot3 を後退              |
-| `j`       | TurtleBot3 を左旋回            |
-| `l`       | TurtleBot3 を右旋回            |
-| `Space`   | TurtleBot3 を停止              |
-| `Esc`     | テレオペを終了                 |
-
 ### 5. シミュレーションの動かし方
 
 #### 5.1. セットアップ
