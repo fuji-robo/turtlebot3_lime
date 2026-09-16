@@ -59,31 +59,13 @@ def generate_launch_description():
     ld.add_action(declare_use_sim_time)
 
     # Moveit 2 RViz
-    rviz_config = PathJoinSubstitution(
-        [
-            FindPackageShare('turtlebot3_lime_bringup'),
-            'rviz',
-            'moveit_navigation.rviz',
-        ]
+    moveit_launch_dir = PathJoinSubstitution(
+        [FindPackageShare('turtlebot3_lime_moveit_config'), 'launch'],
     )
     moveit_rviz_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare('turtlebot3_lime_moveit_config'),
-                    'launch',
-                    'moveit_rviz.launch.py',
-                ]
-            )
-        ),
+        PythonLaunchDescriptionSource([moveit_launch_dir, '/moveit_rviz.launch.py']),
+        launch_arguments={'use_sim_time': use_sim_time}.items(),
         condition=IfCondition(use_rviz),
-        launch_arguments={
-            'rviz_config': rviz_config,
-            'use_gazebo': use_gazebo,
-            'use_fake_hardware': 'false',
-            'fake_sensor_commands': 'false',
-            'use_sim_time': use_sim_time,
-        }.items(),
     )
     ld.add_action(moveit_rviz_launch)
 
@@ -125,7 +107,7 @@ def generate_launch_description():
         launch_arguments={
             'map_yaml_file': map_yaml_file,
             'use_sim_time': use_sim_time,
-            'use_rviz': 'false',
+            'use_rviz': use_rviz,
         }.items(),
     )
 

@@ -7,7 +7,6 @@
 | :--------------------------------------------------------: |
 | ![moveit_navigation](./img/moveit_navigation.gif?raw=true) |
 
-
 ## セットアップ手順（Quick Start Guide）
 
 Limeのベースである[TurtleBot3 with OpenMANIPULATOR](https://emanual.robotis.com/docs/en/platform/turtlebot3/manipulation/)から変更点があります．以下の手順を参考にしてください．
@@ -176,7 +175,6 @@ cd ./opencr_update
     source ~/.bashrc
     ```
 
-
 - ROS 2 がインストールされていない場合
     <details>
 
@@ -244,18 +242,10 @@ source ~/.bashrc
 
 **必ず，Jetson Orin NanoとリモートPCの時刻を同期してください．両方をインターネットに接続すれば，時刻が同期されます．**
 
-Jetson Orin Nanoにssh接続して，ドライバを立ち上げます．
+Jetson Orin Nano に ssh 接続して，ドライバを立ち上げます．
 
 ```bash
 ros2 launch turtlebot3_lime_bringup hardware.launch.py
-```
-
-**moveit実行中にbringupを終了しないでください．中断する場合は先にmoveitを終了してください．**
-
-リモートPCでドライバを実行します．
-
-```bash
-ros2 launch turtlebot3_lime_moveit_config servo.launch.py
 ```
 
 #### 3.2. 地図を作る (SLAM)
@@ -272,7 +262,7 @@ ros2 launch turtlebot3_lime_cartographer cartographer.launch.py
 ros2 run turtlebot3_lime_teleop turtlebot3_lime_teleop
 ```
 
-リモートPC側でマップを保存します．
+リモート PC 側でマップを保存します．
 
 ```bash
 ros2 run nav2_map_server map_saver_cli -f ~/map
@@ -280,21 +270,29 @@ ros2 run nav2_map_server map_saver_cli -f ~/map
 
 #### 3.3. Navigation 2
 
-リモートPCでNavigation 2を実行します．
+リモートPCで Navigation 2 を実行します．
 
 ```bash
 ros2 launch turtlebot3_lime_navigation2 navigation2.launch.py map_yaml_file:=$HOME/map.yaml
 ```
 
-#### 3.4. Moveit 2
+#### 3.4. MoveIt 2
 
-リモートPCでMoveit 2を実行します．
+**MoveIt 2 実行中に bringup を終了しないでください．中断する場合は先に moveit を終了してください．**
+
+リモートPCで Move Group と RViz2 を起動します．
 
 ```bash
 ros2 launch turtlebot3_lime_moveit_config moveit_core.launch.py
 ```
 
-#### 3.5. Navigation 2 と Moveit 2 を同時に実行する
+MoveIt Servo を使用する場合は，必要に応じて起動します．
+
+```bash
+ros2 launch turtlebot3_lime_moveit_config servo.launch.py
+```
+
+#### 3.5. Navigation 2 と MoveIt 2 を同時に実行する
 
 リモートPCで以下のコマンドを実行します．
 
@@ -304,7 +302,7 @@ ros2 launch turtlebot3_lime_bringup moveit_navigation.launch.py map_yaml_file:=$
 
 #### 3.6. Realsense D435i のドライバを実行する
 
-Jetson Orin Nanoにssh接続して，ドライバを立ち上げます．
+Jetson Orin Nanoに ssh 接続して，ドライバを立ち上げます．
 
 ```bash
 ros2 launch realsense2_camera rs_launch.py
@@ -316,16 +314,10 @@ ros2 launch realsense2_camera rs_launch.py
 
 この操作は，動かす際に全てリモートPCで行ってください．
 
-Gazeboを立ち上げます．
+Gazebo を起動します．
 
 ```bash
 ros2 launch turtlebot3_lime_gazebo turtlebot3_world.launch.py
-```
-
-ドライバを立ち上げます．
-
-```bash
-ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_sim_time:=true
 ```
 
 #### 4.2. 地図を作る (SLAM)
@@ -338,7 +330,7 @@ SLAMを立ち上げます．
 ros2 launch turtlebot3_lime_cartographer cartographer.launch.py use_sim_time:=true
 ```
 
-テレオペを立ち上げます．
+テレオペを実行します．
 
 ```bash
 ros2 run turtlebot3_lime_teleop turtlebot3_lime_teleop
@@ -354,30 +346,68 @@ ros2 run nav2_map_server map_saver_cli -f ~/map
 
 ![navigation](./img/navigation.gif?raw=true)
 
-Navigation 2を実行します．
+Navigation 2 を起動します．
 
 ```bash
-ros2 launch turtlebot3_lime_navigation2 navigation2_use_sim_time.launch.py map_yaml_file:=$HOME/map.yaml
+ros2 launch turtlebot3_lime_navigation2 navigation2.launch.py use_sim_time:=true map_yaml_file:=$HOME/map.yaml
 ```
 
-#### 4.4. Moveit 2
+#### 4.4. MoveIt 2
 
 ![moveit](./img/moveit.gif?raw=true)
 
-Moveit 2を実行します．
+Gazebo 用 Move Group と RViz2 を起動します．
 
 ```bash
-ros2 launch turtlebot3_lime_moveit_config moveit_core.launch.py use_sim_time:=true
+ros2 launch turtlebot3_lime_moveit_config moveit_gazebo.launch.py
 ```
 
-#### 4.5. Navigation 2 と Moveit 2 を同時に実行する
+MoveIt Servo を使用する場合は，必要に応じて起動します．
 
-![moveit_navigation](./img/moveit_navigation.gif?raw=true)
+```bash
+ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_sim_time:=true use_gazebo:=true
+```
+
+#### 4.5. Navigation 2 と MoveIt 2 を同時に実行する
+
+![moveit\_navigation](./img/moveit_navigation.gif?raw=true)
 
 以下のコマンドを実行します．
 
 ```bash
-ros2 launch turtlebot3_lime_bringup moveit_navigation_use_sim_time.launch.py map_yaml_file:=$HOME/map.yaml
+ros2 launch turtlebot3_lime_bringup moveit_navigation.launch.py use_sim_time:=true use_gazebo:=true map_yaml_file:=$HOME/map.yaml
+```
+
+MoveIt Servo を使用する場合は，必要に応じて別のターミナルで以下のコマンドを実行します．
+
+```bash
+ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_sim_time:=true use_gazebo:=true
+```
+
+### 5. Fake Hardware での動かし方
+
+#### 5.1. セットアップ
+
+この操作は，動かす際に全てリモートPCで行ってください．
+
+Fake Hardware を起動します．
+
+```bash
+ros2 launch turtlebot3_lime_bringup fake.launch.py
+```
+
+#### 5.2. MoveIt 2
+
+Fake Hardware 用  Move Group と RViz2 を起動します．
+
+```bash
+ros2 launch turtlebot3_lime_moveit_config moveit_fake.launch.py
+```
+
+MoveIt Servo を使用する場合は，必要に応じて起動します．
+
+```bash
+ros2 launch turtlebot3_lime_moveit_config servo.launch.py use_fake_hardware:=true
 ```
 
 ## TurtleBot3 with OpenMANIPULATORのROBOTIS e-Manual
