@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 # Authors: Keisuke Nagashima
-# Maintainers: Tomoaki Fujino
-
+# Modified Contents:
+# Modified Maintainers: Tomoaki Fujino
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument

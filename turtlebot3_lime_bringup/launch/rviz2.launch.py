@@ -16,30 +16,38 @@
 #
 # Author: Tomoaki Fujino
 
-import os
-
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    ld = LaunchDescription()
+    use_sim_time = LaunchConfiguration('use_sim_time')
 
-    rviz_config_dir = os.path.join(
-        get_package_share_directory('turtlebot3_lime_description'),
-        'rviz',
-        'model.rviz',
+    rviz_config_file = PathJoinSubstitution(
+        [
+            FindPackageShare('turtlebot3_lime_description'),
+            'rviz',
+            'model.rviz',
+        ]
     )
 
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        arguments=['-d', rviz_config_dir],
-        output='screen',
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                'use_rviz',
+                default_value='true',
+                description='Whether execute rviz2',
+            ),
+            Node(
+                package='rviz2',
+                executable='rviz2',
+                arguments=['-d', rviz_config_file],
+                parameters=[{'use_sim_time': use_sim_time}],
+                output='screen',
+            ),
+        ]
     )
-
-    ld.add_action(rviz_node)
-
-    return ld

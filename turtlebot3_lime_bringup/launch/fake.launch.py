@@ -16,7 +16,8 @@
 # limitations under the License.
 #
 # Author: Darby Lim
-# Maintainers: Tomoaki Fujino
+# Modified Contents:
+# Modified Maintainers: Tomoaki Fujino
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument

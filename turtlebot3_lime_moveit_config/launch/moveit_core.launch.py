@@ -16,7 +16,8 @@
 # limitations under the License.
 #
 # Authors: Hye-jong KIM
-# Maintainers: Tomoaki Fujino
+# Modified Contents:
+# Modified Maintainers: Fujino Tomoaki
 
 
 from launch import LaunchDescription
