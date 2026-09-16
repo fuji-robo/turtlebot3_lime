@@ -14,12 +14,12 @@
   <author email="hjkim@robotis.com">Hye-jong KIM</author>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <exec_depend>controller_manager</exec_depend>
-  <exec_depend>occupancy_map_monitor</exec_depend>
   <exec_depend>moveit_configs_utils</exec_depend>
   <exec_depend>moveit_kinematics</exec_depend>
   <exec_depend>moveit_planners</exec_depend>
   <exec_depend>moveit_planners_ompl</exec_depend>
   <exec_depend>moveit_ros_planning_interface</exec_depend>
+  <exec_depend>moveit_ros_occupancy_map_monitor</exec_depend>
   <exec_depend>moveit_ros_perception</exec_depend>
   <exec_depend>moveit_ros_move_group</exec_depend>
   <exec_depend>moveit_ros_visualization</exec_depend>
